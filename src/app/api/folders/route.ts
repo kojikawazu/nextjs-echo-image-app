@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { ListObjectsV2Command } from '@aws-sdk/client-s3';
-import { BUCKET_NAME, PORTAL_PREFIX } from '@/lib/constants';
+import { BUCKET_NAME } from '@/lib/constants';
 import { s3Client } from '@/lib/s3-client';
 
 /**
