@@ -35,6 +35,8 @@ export default function Home() {
 
     // 現在のフォルダーデータ
     const [currentFolder, setCurrentFolder] = useState<FolderData | null>(null);
+    // 前の階層のフォルダー情報を保持するstate
+    const [previousFolders, setPreviousFolders] = useState<FolderData[]>([]);
 
     /**
      * アイテム選択の切り替え
@@ -81,22 +83,47 @@ export default function Home() {
     };
 
     // フィルタリングされたフォルダーと画像がないかどうか
-    let isEmpty = folders.length === 0 && images.length === 0;
+    const isEmpty = folders.length === 0 && images.length === 0;
 
+    /**
+     * フォルダーを開く
+     * @param id フォルダーID
+     */
     const handleOpenFolder = async (id: string) => {
-        console.log('handleOpenFolder', id);
-        setCurrentFolder(folders.find((f) => f.id === id) || null);
-        setCurrentFolderId(id);
+        if (!currentFolder) {
+            // 初期状態からの移動
+            setCurrentFolder(folders.find((f) => f.id === id) || null);
+            setPreviousFolders(folders);
+        } else {
+            const currentParts = currentFolder.id.split('/');
+            const newParts = id.split('/');
+
+            if (newParts.length < currentParts.length) {
+                // 親フォルダーへの移動
+                const parentFolder: FolderData = {
+                    id: id,
+                    name: id.split('/').slice(-2, -1)[0] || 'portal',
+                    createdAt: new Date().toISOString(),
+                    parentId: id.split('/').slice(0, -2).join('/') + '/',
+                };
+                setCurrentFolder(parentFolder);
+            } else if (newParts.length === currentParts.length) {
+                // 同一階層での移動
+                setCurrentFolder(previousFolders.find((f) => f.id === id) || null);
+            } else {
+                // 子フォルダーへの移動
+                setCurrentFolder(folders.find((f) => f.id === id) || null);
+                setPreviousFolders(folders);
+            }
+        }
 
         try {
             // フォルダー一覧を取得
             const foldersData = await getFolders(id);
-            //console.log('Fetched folders:', foldersData);
             setFolders(foldersData);
 
             // 画像一覧を取得
             const imagesData = await getImages(id);
-            //console.log('Fetched images:', imagesData);
             setImages(imagesData);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -109,12 +136,10 @@ export default function Home() {
             try {
                 // フォルダー一覧を取得
                 const foldersData = await getFolders(PORTAL_PREFIX);
-                //console.log('Fetched folders:', foldersData);
                 setFolders(foldersData);
 
                 // 画像一覧を取得
                 const imagesData = await getImages(PORTAL_PREFIX);
-                //console.log('Fetched images:', imagesData);
                 setImages(imagesData);
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -128,11 +153,7 @@ export default function Home() {
         <div className="container py-8">
             <div className="mb-6 space-y-4">
                 <div className="flex items-center justify-between">
-                    <BreadcrumbNav
-                        currentFolder={currentFolder}
-                        folders={folders}
-                        onNavigate={setCurrentFolderId}
-                    />
+                    <BreadcrumbNav currentFolder={currentFolder} onNavigate={handleOpenFolder} />
                     <div className="flex items-center space-x-2">
                         <CreateFolderDialog onCreateFolder={handleCreateFolder} />
                         <Button asChild variant="default" size="sm">
