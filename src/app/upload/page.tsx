@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { FolderData } from '@/types/types';
 // lib
 import { getFolder } from '@/lib/s3/s3-fetch';
+import { addImages } from '@/lib/s3/s3-client';
 // components
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -76,18 +77,23 @@ export default function UploadPage() {
      * ファイルアップロード
      */
     const handleUpload = async () => {
+        // ファイルが選択されていない場合はエラー
         if (files.length === 0) {
             toast.error('Please select files to upload');
             return;
         }
 
+        // アップロード中の状態に設定
         setUploading(true);
         setProgress(0);
 
         try {
-            // Upload logic will be implemented here
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // 画像をアップロード
+            const currentFolderId = currentFolder?.id || '';
+            await addImages(currentFolderId, files);
+            // アップロード完了
             toast.success('Files uploaded successfully');
+            // 選択されたファイルをクリア
             setFiles([]);
         } catch (error) {
             toast.error('Failed to upload files');
