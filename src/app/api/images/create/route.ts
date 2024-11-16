@@ -24,17 +24,19 @@ export async function POST(request: Request) {
         // バッファに変換
         const buffer = Buffer.from(await file.arrayBuffer());
         const cleanFolderPath = folderPath.replace(/\/+$/, '');
-        const key = cleanFolderPath.startsWith('/') 
+        const key = cleanFolderPath.startsWith('/')
             ? `${cleanFolderPath.slice(1)}/${file.name}`
             : `${cleanFolderPath}/${file.name}`;
 
         // S3に画像をアップロード
-        await s3Client.send(new PutObjectCommand({
-            Bucket: BUCKET_NAME,
-            Key: key,
-            Body: buffer,
-            ContentType: file.type,
-        }));
+        await s3Client.send(
+            new PutObjectCommand({
+                Bucket: BUCKET_NAME,
+                Key: key,
+                Body: buffer,
+                ContentType: file.type,
+            }),
+        );
 
         // 画像データを作成
         const imageData: ImageData = {
@@ -49,6 +51,9 @@ export async function POST(request: Request) {
         return NextResponse.json(imageData);
     } catch (error) {
         console.error('アップロードエラー:', error);
-        return NextResponse.json({ error: 'アップロード中にエラーが発生しました' }, { status: 500 });
+        return NextResponse.json(
+            { error: 'アップロード中にエラーが発生しました' },
+            { status: 500 },
+        );
     }
 }
