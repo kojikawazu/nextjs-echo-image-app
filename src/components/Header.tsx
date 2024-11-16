@@ -3,14 +3,19 @@
 import { ImageIcon, UploadIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+// components
 import { Button } from '@/components/ui/button';
 import { ModeToggle } from '@/components/mode-toggle';
+import { useSupabase } from '@/components/supabase/supabase-provider';
 
 /**
  * ヘッダー
  * @returns JSX.Element
  */
 export default function Header() {
+    // Supabaseのユーザー情報とローディング状態を取得
+    const { user, loading } = useSupabase();
+    // 現在のパスを取得
     const pathname = usePathname();
 
     return (
@@ -28,16 +33,20 @@ export default function Header() {
                             Gallery
                         </Link>
                     </Button>
-                    <Button
-                        variant={pathname === '/upload' ? 'default' : 'ghost'}
-                        size="sm"
-                        asChild
-                    >
-                        <Link href="/upload">
-                            <UploadIcon className="mr-2 h-4 w-4" />
-                            Upload
-                        </Link>
-                    </Button>
+
+                    {!loading && user && (
+                        <Button
+                            variant={pathname === '/upload' ? 'default' : 'ghost'}
+                            size="sm"
+                            asChild
+                        >
+                            <Link href="/upload">
+                                <UploadIcon className="mr-2 h-4 w-4" />
+                                Upload
+                            </Link>
+                        </Button>
+                    )}
+
                     <ModeToggle />
                 </nav>
             </div>

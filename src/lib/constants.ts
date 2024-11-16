@@ -13,6 +13,7 @@ export const PORTAL_PREFIX = process.env.NEXT_PUBLIC_PORTAL_PREFIX || '';
  */
 export const COMMON_CONSTANTS = {
     URL: {
+        // API
         // folder
         API_FOLDER: '/api/folder',
         API_FOLDERS: '/api/folders',
@@ -22,6 +23,11 @@ export const COMMON_CONSTANTS = {
         API_IMAGES: '/api/images',
         API_IMAGES_CREATE: '/api/images/create',
         API_IMAGES_DELETE: '/api/images/delete',
+        // auth
+        API_AUTH_SESSION: '/api/auth/session',
+
+        // Page
+        PAGE_LOGIN_FORM: '/auth',
     },
     PATH: {
         ROOT: process.env.NEXT_PUBLIC_PORTAL_PREFIX || 'portal/',

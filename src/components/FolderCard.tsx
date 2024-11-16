@@ -2,11 +2,15 @@
 
 import { FolderIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { User } from '@supabase/supabase-js';
+// types
+import { FolderData } from '@/types/types';
+// components
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FolderData } from '@/types/types';
 
 interface FolderCardProps {
+    user: User | null;
     folder: FolderData;
     isSelected: boolean;
     onSelect: (id: string) => void;
@@ -15,26 +19,36 @@ interface FolderCardProps {
 
 /**
  * フォルダーカード
+ * @param user ユーザーデータ
  * @param folder フォルダーデータ
  * @param isSelected 選択状態
  * @param onSelect 選択変更時のイベントハンドラ
  * @param onOpen 開く時のイベントハンドラ
  * @returns JSX.Element
  */
-export default function FolderCard({ folder, isSelected, onSelect, onOpen }: FolderCardProps) {
+export default function FolderCard({
+    user,
+    folder,
+    isSelected,
+    onSelect,
+    onOpen,
+}: FolderCardProps) {
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="group relative rounded-lg border bg-card p-4"
         >
-            <div className="absolute right-2 top-2">
-                <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => onSelect(folder.id)}
-                    className="h-5 w-5"
-                />
-            </div>
+            {user && (
+                <div className="absolute right-2 top-2">
+                    <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => onSelect(folder.id)}
+                        className="h-5 w-5"
+                    />
+                </div>
+            )}
+
             <Button
                 variant="ghost"
                 className="w-full justify-start"

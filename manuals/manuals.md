@@ -19,6 +19,8 @@ npm install sonner
 npm install react-dropzone
 # axiosのインストール
 npm install axios
+# supabaseのインストール
+npm install @supabase/auth-helpers-nextjs @supabase/supabase-js
 ```
 
 ## shadcn/uiのインストール
