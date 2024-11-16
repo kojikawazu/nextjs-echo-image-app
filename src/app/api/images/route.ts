@@ -4,6 +4,8 @@ import { ListObjectsV2Command } from '@aws-sdk/client-s3';
 import { BUCKET_NAME } from '@/lib/constants';
 import { s3Client } from '@/lib/s3/s3-client';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * 画像の一覧を取得するAPI
  * @param request リクエスト
