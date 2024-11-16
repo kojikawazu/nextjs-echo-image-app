@@ -112,11 +112,20 @@ const MainComponents = () => {
      * @param name フォルダー名
      */
     const handleCreateFolder = async (name: string) => {
+        // currentFolderIdの末尾に/を追加する処理
+        const normalizedFolderId =
+            currentFolderId === 'portal'
+                ? 'portal/'
+                : currentFolderId?.endsWith('/')
+                  ? currentFolderId
+                  : `${currentFolderId}/`;
+
+        // 新しいフォルダーのデータを作成
         const newFolder: FolderData = {
-            id: `${currentFolderId}${name}`,
+            id: `${normalizedFolderId}${name}`,
             name,
             createdAt: new Date().toISOString().split('T')[0],
-            parentId: currentFolderId,
+            parentId: normalizedFolderId,
         };
 
         try {
