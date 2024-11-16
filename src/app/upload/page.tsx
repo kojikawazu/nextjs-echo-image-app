@@ -1,5 +1,7 @@
 import { Suspense } from 'react';
+import { redirect } from 'next/navigation';
 // lib
+import { COMMON_CONSTANTS } from '@/lib/constants';
 import { createServerSupabase } from '@/lib/supabase/supabase-server';
 // components
 import UploadComponents from '@/components/upload/UploadComponents';
@@ -19,6 +21,9 @@ const UploadPage = async () => {
 
     // ユーザー情報の取得
     const { data } = await supabase.auth.getUser();
+    if (!data.user) {
+        redirect(COMMON_CONSTANTS.URL.PAGE_LOGIN_FORM);
+    }
 
     return (
         <Suspense fallback={<div>Loading...</div>}>
