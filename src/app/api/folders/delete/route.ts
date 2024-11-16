@@ -15,10 +15,7 @@ export async function DELETE(request: Request) {
 
         // フォルダーが指定されていない場合はエラー
         if (!folderIds || folderIds.length === 0) {
-            return NextResponse.json(
-                { message: 'No folders specified' },
-                { status: 400 }
-            );
+            return NextResponse.json({ message: 'No folders specified' }, { status: 400 });
         }
 
         // フォルダー内のすべてのオブジェクトをリスト化
@@ -54,9 +51,6 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ message: 'Folder deleted successfully' });
     } catch (error) {
         console.error('Error deleting folder:', error);
-        return NextResponse.json(
-            { error: 'Failed to delete folder' },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: 'Failed to delete folder' }, { status: 500 });
     }
 }

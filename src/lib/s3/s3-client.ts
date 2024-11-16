@@ -41,7 +41,6 @@ export const addFolder = async (folder: FolderData): Promise<FolderData> => {
     }
 };
 
-
 /**
  * フォルダー削除
  * @param folderId フォルダーID
