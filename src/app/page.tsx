@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { dummyImages, dummyFolders } from '@/types/dummy-data';
 import { FolderData } from '@/types/types';
 // lib
-import { addFolder } from '@/lib/s3/s3-client';
+import { addFolder, deleteFolder } from '@/lib/s3/s3-client';
 import { getFolder, getChildrenFolders, getImages } from '@/lib/s3/s3-fetch';
 import { PORTAL_PREFIX } from '@/lib/constants';
 // components
@@ -61,14 +61,24 @@ export default function Home() {
     /**
      * アイテム削除
      */
-    const handleDelete = () => {
+    const handleDelete = async () => {
+        // 選択されたアイテムがない場合はエラー
         if (selectedItems.size === 0) {
             toast.error('Please select items to delete');
             return;
         }
 
-        toast.success(`Deleted ${selectedItems.size} items`);
-        setSelectedItems(new Set());
+        try {
+            // 選択されたアイテムを削除
+            await deleteFolder(Array.from(selectedItems));
+            // 選択されたアイテムをフォルダーリストから削除
+            setFolders(folders.filter(folder => !selectedItems.has(folder.id)));
+            setSelectedItems(new Set());
+            toast.success(`Deleted ${selectedItems.size} items`);
+        } catch (error) {
+            console.error('Error deleting items:', error);
+            toast.error('Failed to delete items');
+        }
     };
 
     /**

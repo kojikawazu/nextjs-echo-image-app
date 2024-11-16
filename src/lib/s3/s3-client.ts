@@ -41,6 +41,28 @@ export const addFolder = async (folder: FolderData): Promise<FolderData> => {
     }
 };
 
+
+/**
+ * フォルダー削除
+ * @param folderId フォルダーID
+ * @returns フォルダー削除結果
+ */
+export const deleteFolder = async (folderIds: string[]): Promise<void> => {
+    const url = `${COMMON_CONSTANTS.URL.API_FOLDERS_DELETE}`;
+
+    try {
+        // フォルダーを削除
+        await fetch(url, {
+            method: 'DELETE',
+            body: JSON.stringify({ folderIds }),
+        });
+    } catch (error) {
+        // フォルダーの削除に失敗した場合
+        console.error('フォルダーの削除に失敗しました: ', error);
+        throw error;
+    }
+};
+
 /**
  * 画像をアップロード
  * @param folderId フォルダーID
@@ -72,3 +94,4 @@ export const addImages = async (folderId: string, files: File[]): Promise<void> 
         throw error;
     }
 };
+
