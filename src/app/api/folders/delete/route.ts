@@ -13,6 +13,14 @@ export async function DELETE(request: Request) {
         // リクエストボディを取得
         const { folderIds } = await request.json();
 
+        // フォルダーが指定されていない場合はエラー
+        if (!folderIds || folderIds.length === 0) {
+            return NextResponse.json(
+                { message: 'No folders specified' },
+                { status: 400 }
+            );
+        }
+
         // フォルダー内のすべてのオブジェクトをリスト化
         for (const folderPath of folderIds) {
             // フォルダー内のすべてのオブジェクトをリスト化

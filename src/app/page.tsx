@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { dummyImages, dummyFolders } from '@/types/dummy-data';
 import { FolderData } from '@/types/types';
 // lib
-import { addFolder, deleteFolder } from '@/lib/s3/s3-client';
+import { addFolder, deleteFolders, deleteImages } from '@/lib/s3/s3-client';
 import { getFolder, getChildrenFolders, getImages } from '@/lib/s3/s3-fetch';
 import { PORTAL_PREFIX } from '@/lib/constants';
 // components
@@ -68,17 +68,39 @@ export default function Home() {
             return;
         }
 
-        try {
-            // 選択されたアイテムを削除
-            await deleteFolder(Array.from(selectedItems));
-            // 選択されたアイテムをフォルダーリストから削除
-            setFolders(folders.filter(folder => !selectedItems.has(folder.id)));
-            setSelectedItems(new Set());
-            toast.success(`Deleted ${selectedItems.size} items`);
-        } catch (error) {
-            console.error('Error deleting items:', error);
-            toast.error('Failed to delete items');
+        // 選択されたアイテムをフォルダと画像に分ける
+        const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+        const folderIds = Array.from(selectedItems).filter(item => !ALLOWED_IMAGE_EXTENSIONS.some(ext => item.toLowerCase().endsWith(ext)));
+        const imageKeys = Array.from(selectedItems).filter(item => ALLOWED_IMAGE_EXTENSIONS.some(ext => item.toLowerCase().endsWith(ext)));
+
+        // フォルダーが選択されている場合
+        if (folderIds.length > 0) {
+            try {
+                // 選択されたアイテムを削除
+                await deleteFolders(folderIds);
+                // 選択されたアイテムをフォルダーリストから削除
+                setFolders(folders.filter((folder) => !selectedItems.has(folder.id)));
+            } catch (error) {
+                console.error('Error deleting folders:', error);
+                toast.error('Failed to delete folders');
+            }
         }
+
+        // 画像が選択されている場合 
+        if (imageKeys.length > 0) {
+            try {
+                // 選択されたアイテムを削除
+                await deleteImages(imageKeys);
+                // 選択されたアイテムを画像リストから削除
+                setImages(images.filter((image) => !selectedItems.has(image.id)));
+            } catch (error) {
+                console.error('Error deleting images:', error);
+                toast.error('Failed to delete images');
+            }
+        }
+
+        setSelectedItems(new Set());
+        toast.success(`Deleted ${selectedItems.size} items`);
     };
 
     /**
