@@ -20,6 +20,7 @@ import ImageCard from '@/components/ImageCard';
 import FolderCard from '@/components/FolderCard';
 import CreateFolderDialog from '@/components/CreateFolderDialog';
 import BreadcrumbNav from '@/components/BreadcrumbNav';
+import Spinner from '@/components/Spinner';
 
 /**
  * メインコンポーネント
@@ -36,11 +37,12 @@ const MainComponents = () => {
     const [folders, setFolders] = useState(dummyFolders);
     // 画像データの状態
     const [images, setImages] = useState(dummyImages);
-
     // 現在のフォルダーデータ
     const [currentFolder, setCurrentFolder] = useState<FolderData | null>(null);
     // 前の階層のフォルダー情報を保持するstate
     const [previousFolders, setPreviousFolders] = useState<FolderData[]>([]);
+    // ローディング中かどうかの状態
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     /**
      * アイテム選択の切り替え
@@ -244,8 +246,10 @@ const MainComponents = () => {
         };
 
         const init = async () => {
+            setIsLoading(true);
             const currentFolder = await getCurrentFolder();
             await getData(currentFolder);
+            setIsLoading(false);
         };
 
         init();
@@ -253,70 +257,87 @@ const MainComponents = () => {
 
     return (
         <div className="container py-8">
-            <div className="mb-6 space-y-4">
-                <div className="flex items-center justify-between">
-                    <BreadcrumbNav currentFolder={currentFolder} onNavigate={handleOpenFolder} />
-                    <div className="flex items-center space-x-2">
-                        <CreateFolderDialog onCreateFolder={handleCreateFolder} />
-                        <Button asChild variant="default" size="sm">
-                            <Link href={`/upload?folderId=${currentFolder?.id || 'portal/'}`}>
-                                <ImagePlus className="mr-2 h-4 w-4" />
-                                Upload Images
-                            </Link>
-                        </Button>
-                        {selectedItems.size > 0 && (
-                            <Button variant="destructive" size="sm" onClick={handleDelete}>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete ({selectedItems.size})
-                            </Button>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {isEmpty ? (
-                <div className="flex min-h-[60vh] flex-col items-center justify-center rounded-lg border-2 border-dashed">
-                    <ImagePlus className="h-12 w-12 text-muted-foreground" />
-                    <h2 className="mt-4 text-xl font-semibold">This folder is empty</h2>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                        Upload images or create folders to get started
-                    </p>
+            {isLoading ? (
+                <div className="flex justify-center items-center min-h-[60vh]">
+                    <Spinner className="w-6 h-6 text-primary" />
                 </div>
             ) : (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-                    {folders.length > 0 && (
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold">Folders</h2>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                                {folders.map((folder: FolderData) => (
-                                    <FolderCard
-                                        key={folder.id}
-                                        folder={folder}
-                                        isSelected={selectedItems.has(folder.id)}
-                                        onSelect={toggleItemSelection}
-                                        onOpen={() => handleOpenFolder(folder.id)}
-                                    />
-                                ))}
+                <>
+                    <div className="mb-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <BreadcrumbNav
+                                currentFolder={currentFolder}
+                                onNavigate={handleOpenFolder}
+                            />
+                            <div className="flex items-center space-x-2">
+                                <CreateFolderDialog onCreateFolder={handleCreateFolder} />
+                                <Button asChild variant="default" size="sm">
+                                    <Link
+                                        href={`/upload?folderId=${currentFolder?.id || 'portal/'}`}
+                                    >
+                                        <ImagePlus className="mr-2 h-4 w-4" />
+                                        Upload Images
+                                    </Link>
+                                </Button>
+                                {selectedItems.size > 0 && (
+                                    <Button variant="destructive" size="sm" onClick={handleDelete}>
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Delete ({selectedItems.size})
+                                    </Button>
+                                )}
                             </div>
                         </div>
-                    )}
 
-                    {images.length > 0 && (
-                        <div className="space-y-4">
-                            <h2 className="text-lg font-semibold">Images</h2>
-                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                                {images.map((image) => (
-                                    <ImageCard
-                                        key={image.id}
-                                        image={image}
-                                        isSelected={selectedItems.has(image.id)}
-                                        onSelect={toggleItemSelection}
-                                    />
-                                ))}
+                        {isEmpty ? (
+                            <div className="flex min-h-[60vh] flex-col items-center justify-center rounded-lg border-2 border-dashed">
+                                <ImagePlus className="h-12 w-12 text-muted-foreground" />
+                                <h2 className="mt-4 text-xl font-semibold">This folder is empty</h2>
+                                <p className="mt-2 text-sm text-muted-foreground">
+                                    Upload images or create folders to get started
+                                </p>
                             </div>
-                        </div>
-                    )}
-                </motion.div>
+                        ) : (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="space-y-8"
+                            >
+                                {folders.length > 0 && (
+                                    <div className="space-y-4">
+                                        <h2 className="text-lg font-semibold">Folders</h2>
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                                            {folders.map((folder: FolderData) => (
+                                                <FolderCard
+                                                    key={folder.id}
+                                                    folder={folder}
+                                                    isSelected={selectedItems.has(folder.id)}
+                                                    onSelect={toggleItemSelection}
+                                                    onOpen={() => handleOpenFolder(folder.id)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {images.length > 0 && (
+                                    <div className="space-y-4">
+                                        <h2 className="text-lg font-semibold">Images</h2>
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                                            {images.map((image) => (
+                                                <ImageCard
+                                                    key={image.id}
+                                                    image={image}
+                                                    isSelected={selectedItems.has(image.id)}
+                                                    onSelect={toggleItemSelection}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </div>
+                </>
             )}
         </div>
     );
