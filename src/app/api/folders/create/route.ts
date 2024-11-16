@@ -5,6 +5,7 @@ import { BUCKET_NAME } from '@/lib/constants';
 import { s3Client } from '@/lib/s3/s3-client';
 
 interface CreateFolderRequest {
+    id: string;
     name: string;
     parentId: string;
 }
@@ -17,7 +18,8 @@ export async function POST(request: Request) {
     try {
         // リクエストボディを取得
         const body: CreateFolderRequest = await request.json();
-        const { name, parentId } = body;
+        const { id, name, parentId } = body;
+        const folderPath = id.endsWith('/') ? id : `${id}/`;
 
         // フォルダ名とパスのバリデーション
         if (!name || !parentId) {
@@ -27,17 +29,11 @@ export async function POST(request: Request) {
             );
         }
 
-        // 親フォルダのパスを正規化
-        const normalizedParentPath = parentId.endsWith('/') ? parentId : `${parentId}/`;
-
-        // 新しいフォルダのパスを作成
-        const folderPath = `${normalizedParentPath}${name}/`;
-
         // S3にフォルダを作成（空のオブジェクトを作成）
         const command = new PutObjectCommand({
             Bucket: BUCKET_NAME,
             Key: folderPath,
-            Body: '', // 空のコンテンツ
+            Body: '',
         });
 
         await s3Client.send(command);
@@ -47,7 +43,7 @@ export async function POST(request: Request) {
             id: folderPath,
             name: name,
             createdAt: new Date().toISOString(),
-            parentId: normalizedParentPath,
+            parentId: parentId,
         };
 
         return NextResponse.json(newFolder);
