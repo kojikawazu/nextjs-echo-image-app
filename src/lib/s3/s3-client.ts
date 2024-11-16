@@ -40,3 +40,35 @@ export const addFolder = async (folder: FolderData): Promise<FolderData> => {
         throw error;
     }
 };
+
+/**
+ * 画像をアップロード
+ * @param folderId フォルダーID
+ * @param files 画像
+ * @returns 画像
+ */
+export const addImages = async (folderId: string, files: File[]): Promise<void> => {
+    const url = `${COMMON_CONSTANTS.URL.API_IMAGES_CREATE}`;
+
+    try {
+        // 画像をアップロード
+        for (const file of files) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('folderPath', folderId);
+
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('画像のアップロードに失敗しました');
+            }
+        }
+    } catch (error) {
+        // 画像のアップロードに失敗した場合
+        console.error('画像のアップロードに失敗しました: ', error);
+        throw error;
+    }
+};

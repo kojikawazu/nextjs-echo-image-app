@@ -152,14 +152,14 @@ export default function Home() {
          */
         const getCurrentFolder = async () => {
             const folderId = searchParams.get('folderId');
-            
+
             if (folderId) {
                 const folder = await getFolder(folderId);
                 setCurrentFolder({
                     id: folderId,
                     name: folder.name,
                     createdAt: new Date().toISOString(),
-                    parentId: folder.parentId || 'portal/'
+                    parentId: folder.parentId || 'portal/',
                 });
 
                 return folder;
