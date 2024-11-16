@@ -2,25 +2,35 @@
 
 import { useCallback, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { Upload, X, LogIn, LogOut } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { User } from '@supabase/supabase-js';
 // types
 import { FolderData } from '@/types/types';
 // lib
 import { getFolder } from '@/lib/s3/s3-fetch';
 import { addImages } from '@/lib/s3/s3-client';
+import { COMMON_CONSTANTS } from '@/lib/constants';
+import { signOut } from '@/lib/supabase/supabase-server';
 // components
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { useSupabase } from '@/components/supabase/supabase-provider';
 import BreadcrumbNav from '@/components/BreadcrumbNav';
+
+interface UploadComponentsProps {
+    user: User | null;
+}
 
 /**
  * 画像アップロードコンポーネント
+ * @param user ユーザー情報
  * @returns JSX.Element
  */
-const UploadComponents = () => {
+const UploadComponents = ({ user }: UploadComponentsProps) => {
     // URLから現在のフォルダー情報を取得して設定
     const searchParams = useSearchParams();
     // ルーター
@@ -33,6 +43,8 @@ const UploadComponents = () => {
     const [uploading, setUploading] = useState(false);
     // アップロードの進捗状態
     const [progress, setProgress] = useState(0);
+    // Supabase(カスタム用)
+    const { syncSession } = useSupabase();
 
     /**
      * ドロップされたファイルの処理
@@ -104,6 +116,21 @@ const UploadComponents = () => {
         }
     };
 
+    /**
+     * サインアウト
+     */
+    const handleSignOut = async () => {
+        try {
+            await signOut();
+            await syncSession();
+            toast.success('SignOut Successed');
+            // リダイレクトは不要
+        } catch (error) {
+            toast.error('SignOut Failed');
+            console.error(error);
+        }
+    };
+
     // URLから現在のフォルダー情報を取得して設定
     useEffect(() => {
         const getCurrentFolder = async () => {
@@ -125,6 +152,25 @@ const UploadComponents = () => {
 
     return (
         <div className="container py-8">
+            <div className="mb-6 space-y-4">
+                <div className="flex flex-col items-center justify-center">
+                    <h2 className="text-lg font-semibold mb-4">{user ? user.email : 'Guest'}</h2>
+                    {user ? (
+                        <Button variant="outline" size="sm" onClick={handleSignOut}>
+                            <LogOut className="mr-2 h-4 w-4" />
+                            SignOut
+                        </Button>
+                    ) : (
+                        <Link href={COMMON_CONSTANTS.URL.PAGE_LOGIN_FORM}>
+                            <Button variant="outline" size="sm">
+                                <LogIn className="mr-2 h-4 w-4" />
+                                SignIn
+                            </Button>
+                        </Link>
+                    )}
+                </div>
+            </div>
+
             <div className="mb-6 space-y-4">
                 <BreadcrumbNav currentFolder={currentFolder} onNavigate={handleOpenFolder} />
             </div>

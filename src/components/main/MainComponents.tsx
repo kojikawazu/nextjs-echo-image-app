@@ -2,31 +2,39 @@
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { ImagePlus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { ImagePlus, LogIn, Trash2, LogOut } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-
+import { User } from '@supabase/supabase-js';
 // types
 import { dummyImages, dummyFolders } from '@/types/dummy-data';
 import { FolderData } from '@/types/types';
 // lib
 import { addFolder, deleteFolders, deleteImages } from '@/lib/s3/s3-client';
 import { getFolder, getChildrenFolders, getImages } from '@/lib/s3/s3-fetch';
-import { PORTAL_PREFIX } from '@/lib/constants';
+import { COMMON_CONSTANTS, PORTAL_PREFIX } from '@/lib/constants';
+import { signOut } from '@/lib/supabase/supabase-server';
 // components
 import { Button } from '@/components/ui/button';
+import { useSupabase } from '@/components/supabase/supabase-provider';
 import ImageCard from '@/components/ImageCard';
 import FolderCard from '@/components/FolderCard';
 import CreateFolderDialog from '@/components/CreateFolderDialog';
 import BreadcrumbNav from '@/components/BreadcrumbNav';
 import Spinner from '@/components/Spinner';
 
+interface MainComponentsProps {
+    user: User | null;
+}
+
+/**
 /**
  * メインコンポーネント
+ * @param user ユーザー情報
  * @returns JSX.Element
  */
-const MainComponents = () => {
+const MainComponents = ({ user }: MainComponentsProps) => {
     // URLから現在のフォルダー情報を取得して設定
     const searchParams = useSearchParams();
     // 選択されたアイテムの状態
@@ -43,6 +51,8 @@ const MainComponents = () => {
     const [previousFolders, setPreviousFolders] = useState<FolderData[]>([]);
     // ローディング中かどうかの状態
     const [isLoading, setIsLoading] = useState<boolean>(true);
+    // Supabase(カスタム用)
+    const { syncSession } = useSupabase();
 
     /**
      * アイテム選択の切り替え
@@ -195,7 +205,15 @@ const MainComponents = () => {
         }
     };
 
-    // URLから現在のフォルダー情報を取得して設定
+    /**
+     * サインアウト
+     */
+    const handleSignOut = async () => {
+        await signOut();
+        await syncSession();
+        toast.success('SignOut Successed');
+    };
+
     useEffect(() => {
         /**
          * 現在のフォルダー情報を取得
@@ -256,7 +274,7 @@ const MainComponents = () => {
     }, [searchParams]);
 
     return (
-        <div className="container py-8">
+        <div className="container px-4 py-8">
             {isLoading ? (
                 <div className="flex justify-center items-center min-h-[60vh]">
                     <Spinner className="w-6 h-6 text-primary" />
@@ -264,28 +282,55 @@ const MainComponents = () => {
             ) : (
                 <>
                     <div className="mb-6 space-y-4">
+                        <div className="flex flex-col items-center justify-center">
+                            <h2 className="text-lg font-semibold mb-4">
+                                {user ? user.email : 'Guest'}
+                            </h2>
+                            {user ? (
+                                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                                    <LogOut className="mr-2 h-4 w-4" />
+                                    SignOut
+                                </Button>
+                            ) : (
+                                <Link href={COMMON_CONSTANTS.URL.PAGE_LOGIN_FORM}>
+                                    <Button variant="outline" size="sm">
+                                        <LogIn className="mr-2 h-4 w-4" />
+                                        SignIn
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mb-6 space-y-4">
                         <div className="flex items-center justify-between">
                             <BreadcrumbNav
                                 currentFolder={currentFolder}
                                 onNavigate={handleOpenFolder}
                             />
-                            <div className="flex items-center space-x-2">
-                                <CreateFolderDialog onCreateFolder={handleCreateFolder} />
-                                <Button asChild variant="default" size="sm">
-                                    <Link
-                                        href={`/upload?folderId=${currentFolder?.id || 'portal/'}`}
-                                    >
-                                        <ImagePlus className="mr-2 h-4 w-4" />
-                                        Upload Images
-                                    </Link>
-                                </Button>
-                                {selectedItems.size > 0 && (
-                                    <Button variant="destructive" size="sm" onClick={handleDelete}>
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Delete ({selectedItems.size})
+                            {user && (
+                                <div className="flex items-center space-x-2">
+                                    <CreateFolderDialog onCreateFolder={handleCreateFolder} />
+                                    <Button asChild variant="default" size="sm">
+                                        <Link
+                                            href={`/upload?folderId=${currentFolder?.id || 'portal/'}`}
+                                        >
+                                            <ImagePlus className="mr-2 h-4 w-4" />
+                                            Upload Images
+                                        </Link>
                                     </Button>
-                                )}
-                            </div>
+                                    {selectedItems.size > 0 && (
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={handleDelete}
+                                        >
+                                            <Trash2 className="mr-2 h-4 w-4" />
+                                            Delete ({selectedItems.size})
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         {isEmpty ? (
@@ -309,6 +354,7 @@ const MainComponents = () => {
                                             {folders.map((folder: FolderData) => (
                                                 <FolderCard
                                                     key={folder.id}
+                                                    user={user}
                                                     folder={folder}
                                                     isSelected={selectedItems.has(folder.id)}
                                                     onSelect={toggleItemSelection}
@@ -326,6 +372,7 @@ const MainComponents = () => {
                                             {images.map((image) => (
                                                 <ImageCard
                                                     key={image.id}
+                                                    user={user}
                                                     image={image}
                                                     isSelected={selectedItems.has(image.id)}
                                                     onSelect={toggleItemSelection}

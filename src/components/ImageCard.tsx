@@ -3,10 +3,14 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Checkbox } from '@/components/ui/checkbox';
+import { User } from '@supabase/supabase-js';
+// types
 import { ImageData } from '@/types/types';
+// components
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ImageCardProps {
+    user: User | null;
     image: ImageData;
     isSelected: boolean;
     onSelect: (id: string) => void;
@@ -14,12 +18,13 @@ interface ImageCardProps {
 
 /**
  * 画像カード
+ * @param user ユーザーデータ
  * @param image 画像データ
  * @param isSelected 選択状態
  * @param onSelect 選択変更時のイベントハンドラ
  * @returns JSX.Element
  */
-export default function ImageCard({ image, isSelected, onSelect }: ImageCardProps) {
+export default function ImageCard({ user, image, isSelected, onSelect }: ImageCardProps) {
     // 画像の読み込み状態
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -41,13 +46,15 @@ export default function ImageCard({ image, isSelected, onSelect }: ImageCardProp
             animate={{ opacity: 1, scale: 1 }}
             className="group relative aspect-square overflow-hidden rounded-lg border bg-muted"
         >
-            <div className="absolute right-2 top-2 z-10">
-                <Checkbox
-                    checked={isSelected}
-                    onCheckedChange={() => onSelect(image.id)}
-                    className="h-5 w-5 border-2 border-white bg-black/50 data-[state=checked]:bg-primary"
-                />
-            </div>
+            {user && (
+                <div className="absolute right-2 top-2 z-10">
+                    <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => onSelect(image.id)}
+                        className="h-5 w-5 border-2 border-white bg-black/50 data-[state=checked]:bg-primary"
+                    />
+                </div>
+            )}
 
             {error ? (
                 <div className="flex h-full items-center justify-center text-red-500">
