@@ -9,7 +9,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 export async function GET() {
     // ルートハンドラー用のSupabaseクライアントの作成
     const supabase = createRouteHandlerClient({ cookies });
-    
+
     // セッションの取得
     const {
         data: { session },
