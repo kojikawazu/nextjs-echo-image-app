@@ -23,11 +23,18 @@ interface CreateFolderDialogProps {
  * @returns JSX.Element
  */
 export default function CreateFolderDialog({ onCreateFolder }: CreateFolderDialogProps) {
+    // ダイアログの開閉状態
     const [open, setOpen] = useState(false);
+    // フォルダー名
     const [folderName, setFolderName] = useState('');
 
+    /**
+     * フォルダー作成
+     * @param e イベント
+     */
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
         if (folderName.trim()) {
             onCreateFolder(folderName.trim());
             setFolderName('');
