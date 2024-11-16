@@ -17,6 +17,10 @@
 [![Bolt](https://img.shields.io/badge/Bolt-000000?style=for-the-badge&logo=bolt&logoColor=white)](https://bolt.nuxtjs.org/)
 [![Cursor](https://img.shields.io/badge/Cursor-000000?style=for-the-badge&logo=cursor&logoColor=white)](https://www.cursor.com/)
 
+## API仕様
+
+API仕様は[こちら](./design/api.md)。
+
 ## Other
 
 TODO

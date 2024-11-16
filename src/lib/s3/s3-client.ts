@@ -41,6 +41,33 @@ export const addFolder = async (folder: FolderData): Promise<FolderData> => {
     }
 };
 
+
+/**
+ * フォルダー削除
+ * @param folderId フォルダーID
+ * @returns フォルダー削除結果
+ */
+export const deleteFolders = async (folderIds: string[]): Promise<void> => {
+    const url = `${COMMON_CONSTANTS.URL.API_FOLDERS_DELETE}`;
+
+    // フォルダーが指定されていない場合はエラー
+    if (!folderIds || folderIds.length === 0) {
+        throw new Error('フォルダーが指定されていません');
+    }
+
+    try {
+        // フォルダーを削除
+        await fetch(url, {
+            method: 'DELETE',
+            body: JSON.stringify({ folderIds }),
+        });
+    } catch (error) {
+        // フォルダーの削除に失敗した場合
+        console.error('フォルダーの削除に失敗しました: ', error);
+        throw error;
+    }
+};
+
 /**
  * 画像をアップロード
  * @param folderId フォルダーID
@@ -69,6 +96,32 @@ export const addImages = async (folderId: string, files: File[]): Promise<void> 
     } catch (error) {
         // 画像のアップロードに失敗した場合
         console.error('画像のアップロードに失敗しました: ', error);
+        throw error;
+    }
+};
+
+/**
+ * 画像削除
+ * @param key 画像のキー
+ * @returns 画像削除結果
+ */
+export const deleteImages = async (imageKeys: string[]): Promise<void> => {
+    const url = `${COMMON_CONSTANTS.URL.API_IMAGES_DELETE}`;
+
+    // 画像が指定されていない場合はエラー
+    if (!imageKeys || imageKeys.length === 0) {
+        throw new Error('画像が指定されていません');
+    }
+
+    try {
+        // 画像を削除
+        await fetch(url, {
+            method: 'DELETE',
+            body: JSON.stringify({ imageKeys }),
+        });
+    } catch (error) {
+        // 画像の削除に失敗した場合
+        console.error('画像の削除に失敗しました: ', error);
         throw error;
     }
 };
