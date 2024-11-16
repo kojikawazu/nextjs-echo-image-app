@@ -24,6 +24,6 @@ export const COMMON_CONSTANTS = {
         API_IMAGES_DELETE: '/api/images/delete',
     },
     PATH: {
-        ROOT: 'portal/',
+        ROOT: process.env.NEXT_PUBLIC_PORTAL_PREFIX || 'portal/',
     },
 };

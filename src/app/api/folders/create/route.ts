@@ -4,6 +4,8 @@ import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { BUCKET_NAME } from '@/lib/constants';
 import { s3Client } from '@/lib/s3/s3-client';
 
+export const dynamic = 'force-dynamic';
+
 interface CreateFolderRequest {
     id: string;
 }

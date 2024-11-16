@@ -6,6 +6,8 @@ import { ImageData } from '@/types/types';
 import { BUCKET_NAME, COMMON_CONSTANTS } from '@/lib/constants';
 import { s3Client } from '@/lib/s3/s3-client';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * 画像をアップロード
  * @returns 画像
