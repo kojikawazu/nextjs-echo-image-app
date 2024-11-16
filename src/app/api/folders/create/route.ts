@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
+// lib
 import { BUCKET_NAME } from '@/lib/constants';
-import { s3Client } from '@/lib/s3-client';
+import { s3Client } from '@/lib/s3/s3-client';
 
 interface CreateFolderRequest {
     name: string;
