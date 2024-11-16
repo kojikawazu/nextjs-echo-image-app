@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -10,7 +11,8 @@ import { toast } from 'sonner';
 import { dummyImages, dummyFolders } from '@/types/dummy-data';
 import { FolderData } from '@/types/types';
 // lib
-import { getFolders, getImages, addFolder } from '@/lib/s3-client';
+import { addFolder } from '@/lib/s3/s3-client';
+import { getFolder, getChildrenFolders, getImages } from '@/lib/s3/s3-fetch';
 import { PORTAL_PREFIX } from '@/lib/constants';
 // components
 import { Button } from '@/components/ui/button';
@@ -24,10 +26,12 @@ import BreadcrumbNav from '@/components/BreadcrumbNav';
  * @returns JSX.Element
  */
 export default function Home() {
+    // URLから現在のフォルダー情報を取得して設定
+    const searchParams = useSearchParams();
     // 選択されたアイテムの状態
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     // 現在のフォルダーIDの状態
-    const [currentFolderId, setCurrentFolderId] = useState<string | null>('portal');
+    const [currentFolderId] = useState<string | null>('portal');
     // フォルダーデータの状態
     const [folders, setFolders] = useState(dummyFolders);
     // 画像データの状態
@@ -129,7 +133,7 @@ export default function Home() {
 
         try {
             // フォルダー一覧を取得
-            const foldersData = await getFolders(id);
+            const foldersData = await getChildrenFolders(id);
             setFolders(foldersData);
 
             // 画像一覧を取得
@@ -141,23 +145,63 @@ export default function Home() {
         }
     };
 
+    // URLから現在のフォルダー情報を取得して設定
     useEffect(() => {
-        const getter = async () => {
+        /**
+         * 現在のフォルダー情報を取得
+         */
+        const getCurrentFolder = async () => {
+            const folderId = searchParams.get('folderId');
+            
+            if (folderId) {
+                const folder = await getFolder(folderId);
+                setCurrentFolder({
+                    id: folderId,
+                    name: folder.name,
+                    createdAt: new Date().toISOString(),
+                    parentId: folder.parentId || 'portal/'
+                });
+
+                return folder;
+            }
+
+            return null;
+        };
+
+        /**
+         * フォルダー一覧と画像一覧を取得
+         */
+        const getData = async (currentFolder: FolderData | null) => {
             try {
+                // フォルダーIDが指定されている場合はそのフォルダーの内容を取得
+                const targetPath = currentFolder?.id || PORTAL_PREFIX;
+
                 // フォルダー一覧を取得
-                const foldersData = await getFolders(PORTAL_PREFIX);
+                const foldersData = await getChildrenFolders(targetPath);
                 setFolders(foldersData);
 
                 // 画像一覧を取得
-                const imagesData = await getImages(PORTAL_PREFIX);
+                const imagesData = await getImages(targetPath);
                 setImages(imagesData);
+
+                // 親フォルダーの情報を保持（パンくずリスト用）
+                if (currentFolder?.parentId) {
+                    const parentFolders = await getFolder(currentFolder.parentId);
+                    setPreviousFolders([parentFolders]);
+                }
             } catch (error) {
                 console.error('Error fetching data:', error);
                 toast.error('データの取得に失敗しました');
             }
         };
-        getter();
-    }, []);
+
+        const init = async () => {
+            const currentFolder = await getCurrentFolder();
+            await getData(currentFolder);
+        };
+
+        init();
+    }, [searchParams]);
 
     return (
         <div className="container py-8">
@@ -167,7 +211,7 @@ export default function Home() {
                     <div className="flex items-center space-x-2">
                         <CreateFolderDialog onCreateFolder={handleCreateFolder} />
                         <Button asChild variant="default" size="sm">
-                            <Link href="/upload">
+                            <Link href={`/upload?folderId=${currentFolder?.id || 'portal/'}`}>
                                 <ImagePlus className="mr-2 h-4 w-4" />
                                 Upload Images
                             </Link>
