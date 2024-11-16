@@ -96,6 +96,7 @@ export default function UploadPage() {
             // 選択されたファイルをクリア
             setFiles([]);
         } catch (error) {
+            console.error('error: ', error);
             toast.error('Failed to upload files');
         } finally {
             setUploading(false);
