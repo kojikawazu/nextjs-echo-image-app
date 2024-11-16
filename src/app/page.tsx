@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { dummyImages, dummyFolders } from '@/types/dummy-data';
 import { FolderData } from '@/types/types';
 // lib
-import { getFolders, getImages } from '@/lib/s3-client';
+import { getFolders, getImages, addFolder } from '@/lib/s3-client';
 import { PORTAL_PREFIX } from '@/lib/constants';
 // components
 import { Button } from '@/components/ui/button';
@@ -71,15 +71,25 @@ export default function Home() {
      * フォルダー作成
      * @param name フォルダー名
      */
-    const handleCreateFolder = (name: string) => {
+    const handleCreateFolder = async (name: string) => {
         const newFolder: FolderData = {
             id: `folder-${Date.now()}`,
             name,
             createdAt: new Date().toISOString().split('T')[0],
             parentId: currentFolderId,
         };
-        setFolders([...folders, newFolder]);
-        toast.success(`Created folder: ${name}`);
+
+        try {
+            // フォルダーを作成
+            const createdFolders = await addFolder(newFolder);
+            // フォルダー一覧に追加
+            setFolders([...folders, createdFolders]);
+            // フォルダー作成成功メッセージ
+            toast.success(`Created folder: ${name}`);
+        } catch (error) {
+            console.error('Error creating folder:', error);
+            toast.error('Failed to create folder');
+        }
     };
 
     // フィルタリングされたフォルダーと画像がないかどうか
