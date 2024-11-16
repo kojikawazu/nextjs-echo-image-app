@@ -6,8 +6,6 @@ import { s3Client } from '@/lib/s3/s3-client';
 
 interface CreateFolderRequest {
     id: string;
-    name: string;
-    parentId: string;
 }
 
 /**
@@ -18,15 +16,17 @@ export async function POST(request: Request) {
     try {
         // リクエストボディを取得
         const body: CreateFolderRequest = await request.json();
-        const { id, name, parentId } = body;
+        const { id } = body;
+        // portal/dd → portal/dd/
         const folderPath = id.endsWith('/') ? id : `${id}/`;
+        // portal/dd → dd
+        const folderName = id.split('/').pop();
+        // portal/dd → portal/
+        const parentFolderPath = id.split('/').slice(0, -1).join('/') + '/';
 
-        // フォルダ名とパスのバリデーション
-        if (!name || !parentId) {
-            return NextResponse.json(
-                { error: 'フォルダ名と親フォルダのパスは必須です' },
-                { status: 400 },
-            );
+        // idのバリデーション
+        if (!id) {
+            return NextResponse.json({ error: 'フォルダパスは必須です' }, { status: 400 });
         }
 
         // S3にフォルダを作成（空のオブジェクトを作成）
@@ -41,9 +41,9 @@ export async function POST(request: Request) {
         // 作成したフォルダの情報を返す
         const newFolder = {
             id: folderPath,
-            name: name,
+            name: folderName,
             createdAt: new Date().toISOString(),
-            parentId: parentId,
+            parentId: parentFolderPath,
         };
 
         return NextResponse.json(newFolder);
