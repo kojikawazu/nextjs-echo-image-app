@@ -31,7 +31,7 @@ export default function Home() {
     // 選択されたアイテムの状態
     const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
     // 現在のフォルダーIDの状態
-    const [currentFolderId] = useState<string | null>('portal');
+    const [currentFolderId, setCurrentFolderId] = useState<string | null>('portal');
     // フォルダーデータの状態
     const [folders, setFolders] = useState(dummyFolders);
     // 画像データの状態
@@ -70,8 +70,12 @@ export default function Home() {
 
         // 選択されたアイテムをフォルダと画像に分ける
         const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-        const folderIds = Array.from(selectedItems).filter(item => !ALLOWED_IMAGE_EXTENSIONS.some(ext => item.toLowerCase().endsWith(ext)));
-        const imageKeys = Array.from(selectedItems).filter(item => ALLOWED_IMAGE_EXTENSIONS.some(ext => item.toLowerCase().endsWith(ext)));
+        const folderIds = Array.from(selectedItems).filter(
+            (item) => !ALLOWED_IMAGE_EXTENSIONS.some((ext) => item.toLowerCase().endsWith(ext)),
+        );
+        const imageKeys = Array.from(selectedItems).filter((item) =>
+            ALLOWED_IMAGE_EXTENSIONS.some((ext) => item.toLowerCase().endsWith(ext)),
+        );
 
         // フォルダーが選択されている場合
         if (folderIds.length > 0) {
@@ -86,7 +90,7 @@ export default function Home() {
             }
         }
 
-        // 画像が選択されている場合 
+        // 画像が選択されている場合
         if (imageKeys.length > 0) {
             try {
                 // 選択されたアイテムを削除
@@ -109,7 +113,7 @@ export default function Home() {
      */
     const handleCreateFolder = async (name: string) => {
         const newFolder: FolderData = {
-            id: `folder-${Date.now()}`,
+            id: `${currentFolderId}${name}`,
             name,
             createdAt: new Date().toISOString().split('T')[0],
             parentId: currentFolderId,
@@ -139,6 +143,7 @@ export default function Home() {
         if (!currentFolder) {
             // 初期状態からの移動
             setCurrentFolder(folders.find((f) => f.id === id) || null);
+            setCurrentFolderId(id);
             setPreviousFolders(folders);
         } else {
             const currentParts = currentFolder.id.split('/');
@@ -153,12 +158,14 @@ export default function Home() {
                     parentId: id.split('/').slice(0, -2).join('/') + '/',
                 };
                 setCurrentFolder(parentFolder);
+                setCurrentFolderId(id);
             } else if (newParts.length === currentParts.length) {
                 // 同一階層での移動
                 setCurrentFolder(previousFolders.find((f) => f.id === id) || null);
             } else {
                 // 子フォルダーへの移動
                 setCurrentFolder(folders.find((f) => f.id === id) || null);
+                setCurrentFolderId(id);
                 setPreviousFolders(folders);
             }
         }

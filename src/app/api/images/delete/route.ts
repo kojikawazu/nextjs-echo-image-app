@@ -14,10 +14,7 @@ export async function DELETE(request: Request) {
 
         // 画像が指定されていない場合はエラー
         if (!imageKeys || imageKeys.length === 0) {
-            return NextResponse.json(
-                { message: 'No images specified' },
-                { status: 400 }
-            );
+            return NextResponse.json({ message: 'No images specified' }, { status: 400 });
         }
 
         // 各画像を削除
@@ -33,9 +30,6 @@ export async function DELETE(request: Request) {
         return NextResponse.json({ message: 'Images deleted successfully' });
     } catch (error) {
         console.error('Error deleting images:', error);
-        return NextResponse.json(
-            { message: 'Error deleting images' },
-            { status: 500 }
-        );
+        return NextResponse.json({ message: 'Error deleting images' }, { status: 500 });
     }
 }

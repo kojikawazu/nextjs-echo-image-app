@@ -5,8 +5,7 @@ import { BUCKET_NAME } from '@/lib/constants';
 import { s3Client } from '@/lib/s3/s3-client';
 
 interface CreateFolderRequest {
-    name: string;
-    parentId: string;
+    id: string;
 }
 
 /**
@@ -17,27 +16,24 @@ export async function POST(request: Request) {
     try {
         // リクエストボディを取得
         const body: CreateFolderRequest = await request.json();
-        const { name, parentId } = body;
+        const { id } = body;
+        // portal/dd → portal/dd/
+        const folderPath = id.endsWith('/') ? id : `${id}/`;
+        // portal/dd → dd
+        const folderName = id.split('/').pop();
+        // portal/dd → portal/
+        const parentFolderPath = id.split('/').slice(0, -1).join('/') + '/';
 
-        // フォルダ名とパスのバリデーション
-        if (!name || !parentId) {
-            return NextResponse.json(
-                { error: 'フォルダ名と親フォルダのパスは必須です' },
-                { status: 400 },
-            );
+        // idのバリデーション
+        if (!id) {
+            return NextResponse.json({ error: 'フォルダパスは必須です' }, { status: 400 });
         }
-
-        // 親フォルダのパスを正規化
-        const normalizedParentPath = parentId.endsWith('/') ? parentId : `${parentId}/`;
-
-        // 新しいフォルダのパスを作成
-        const folderPath = `${normalizedParentPath}${name}/`;
 
         // S3にフォルダを作成（空のオブジェクトを作成）
         const command = new PutObjectCommand({
             Bucket: BUCKET_NAME,
             Key: folderPath,
-            Body: '', // 空のコンテンツ
+            Body: '',
         });
 
         await s3Client.send(command);
@@ -45,9 +41,9 @@ export async function POST(request: Request) {
         // 作成したフォルダの情報を返す
         const newFolder = {
             id: folderPath,
-            name: name,
+            name: folderName,
             createdAt: new Date().toISOString(),
-            parentId: normalizedParentPath,
+            parentId: parentFolderPath,
         };
 
         return NextResponse.json(newFolder);
